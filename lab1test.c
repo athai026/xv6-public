@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 int exitWait(void) {
 	  int pid, ret_pid, exit_status;
        int i;
-  // use this part to test exit(int stbatus) and wait(int* status)
+  // use this part to test exit(int status) and wait(int* status)
  
   printf(1, "\n  Parts a & b) testing exit(int status) and wait(int* status):\n");
 
