@@ -57,6 +57,13 @@ sys_kill(void)
   return kill(pid);
 }
 
+int 
+sys_debug(void)
+{
+  debug();
+  return 0;
+}
+
 int
 sys_getpid(void)
 {

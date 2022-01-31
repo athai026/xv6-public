@@ -25,8 +25,9 @@ int sleep(int);
 int uptime(void);
 int add(void);
 int waitpid(int pid, int* status, int options);
+int debug(void); 
 
-// ulib.c
+    //ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
 void *memmove(void*, const void*, int);

@@ -332,6 +332,7 @@ waitpid(int c_pid, int* status, int options)
       havekids = 1;
       if(p->state == ZOMBIE){
         // Found one.
+        //cprintf("dead child found \n");
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -361,7 +362,15 @@ waitpid(int c_pid, int* status, int options)
   }
 }
 
-
+void
+debug(void){
+    struct proc *curproc = myproc();
+    cprintf("debug \n");
+    cprintf("pid: %d \n", curproc->pid);
+    cprintf("process size: %d \n", curproc->sz);
+    cprintf("process state: %d \n", curproc->state);
+    cprintf("exit status: %d \n", curproc->exit_status);
+}
 
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
