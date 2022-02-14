@@ -68,7 +68,7 @@ int
 sys_setpriority(void)
 {
     int priority;
-    if (argint(0, &priority) < 0) {
+    if (argint(0, &priority) < 0 || argint(0, &priority) > 31) {
         return -1;
     }
     return setpriority(priority);
