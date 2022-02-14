@@ -372,6 +372,13 @@ debug(void){
     cprintf("exit status: %d \n", curproc->exit_status);
 }
 
+int
+setpriority(int priority) {
+    struct proc *p = myproc();
+    p->priority = priority;
+    return priority;
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
