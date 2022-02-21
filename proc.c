@@ -112,6 +112,7 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
   p->priority = 10;
+  p->originalPriority = 10;
 
   return p;
 }
@@ -378,6 +379,7 @@ setpriority(int priority) {
     struct proc *p = myproc();
     if (priority >= 0 && priority <= 31) {
         p->priority = priority;
+        p->originalPriority = priority;
     }
     return priority;
 }
@@ -397,51 +399,104 @@ scheduler(void)
   struct cpu *c = mycpu();
   c->proc = 0;
   struct proc *highP = ptable.proc;
-  int lowest = 31;
+  int lowest = 200;
   
   for(;;){
-      lowest = 31;
     // Enable interrupts on this processor.
     sti();
-
+    lowest = 200;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->priority <= lowest && p->state == RUNNABLE) {
-            highP = p;
-            lowest = p->priority;
+            if (p->priority == lowest) {
+                if (p->originalPriority < highP->originalPriority) {
+                    highP = p;
+                }
+            }
+            else {
+                highP = p;
+                lowest = p->priority;
+            }
         }
     }
 
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+/*    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->pid != highP->pid) {
             if (p->priority > 0) {
                 p->priority -= 1;
             }
         }
+        else {
+            if (p->priority < 31) {
+                p->priority += 1;
+            }
+        }
     }
-    
+*/    
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+        if(p->state != RUNNABLE)
+            continue;
 
-      if (highP->state != RUNNABLE) 
-          continue;
+        if (p->pid != highP->pid) {
+            if (p->pid > 0) {
+                p->priority -= 1;
+            }
+            continue;
+        }
+
+/*        lowest = 200;
+        highP = p;
+        for (p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++) {
+            if (p1->state != RUNNABLE) {
+                continue;
+            }
+
+            if (p1->priority <= lowest && p1->state == RUNNABLE) {
+                if (p1->priority == lowest) {
+                    if (p1->originalPriority < highP->originalPriority) {
+                        highP = p1;
+                    }
+                }
+                else {
+                    highP = p1;
+                    lowest = p1->priority;
+                }
+            }   
+        }
+
+        for (p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++) {
+            if (p1->pid != highP->pid) {
+                if (p1->priority > 0) {
+                    p1->priority -= 1;
+                }   
+            }   
+            else {
+                if (highP->priority < 31) {
+                    highP->priority += 1;
+                }
+            }
+        }
+*/
+
+      //if (highP->state != RUNNABLE) 
+      //    continue;
 
      // cprintf("\n Process with pid %d has priority %d after waiting \n", highP->pid, highP->priority);
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      c->proc = highP;
-      switchuvm(highP);
-      highP->state = RUNNING;
+      //p = highP;
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
 
-      swtch(&(c->scheduler), highP->context);
+      swtch(&(c->scheduler), p->context);
       switchkvm();
-      if (highP->priority < 31) {
-          highP->priority += 1;
+      if (p->priority < 31) {
+          p->priority += 1;
       }
 
       // Process is done running for now.
