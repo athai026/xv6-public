@@ -112,7 +112,7 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
   p->priority = 10;
-  p->originalPriority = 10;
+  p->originalPriority = p->priority;
 
   return p;
 }
@@ -399,12 +399,12 @@ scheduler(void)
   struct cpu *c = mycpu();
   c->proc = 0;
   struct proc *highP = ptable.proc;
-  int lowest = 200;
+  int lowest = 31;
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
-    lowest = 200;
+    lowest = 31;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
@@ -421,20 +421,6 @@ scheduler(void)
         }
     }
 
-/*    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-        if (p->pid != highP->pid) {
-            if (p->priority > 0) {
-                p->priority -= 1;
-            }
-        }
-        else {
-            if (p->priority < 31) {
-                p->priority += 1;
-            }
-        }
-    }
-*/    
-
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->state != RUNNABLE)
             continue;
@@ -446,49 +432,9 @@ scheduler(void)
             continue;
         }
 
-/*        lowest = 200;
-        highP = p;
-        for (p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++) {
-            if (p1->state != RUNNABLE) {
-                continue;
-            }
-
-            if (p1->priority <= lowest && p1->state == RUNNABLE) {
-                if (p1->priority == lowest) {
-                    if (p1->originalPriority < highP->originalPriority) {
-                        highP = p1;
-                    }
-                }
-                else {
-                    highP = p1;
-                    lowest = p1->priority;
-                }
-            }   
-        }
-
-        for (p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++) {
-            if (p1->pid != highP->pid) {
-                if (p1->priority > 0) {
-                    p1->priority -= 1;
-                }   
-            }   
-            else {
-                if (highP->priority < 31) {
-                    highP->priority += 1;
-                }
-            }
-        }
-*/
-
-      //if (highP->state != RUNNABLE) 
-      //    continue;
-
-     // cprintf("\n Process with pid %d has priority %d after waiting \n", highP->pid, highP->priority);
-
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      //p = highP;
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
