@@ -113,6 +113,10 @@ found:
   p->context->eip = (uint)forkret;
   p->priority = 10;
   p->originalPriority = p->priority;
+  p->start_time = ticks;
+  p->wait_start = ticks;
+  p->total_wait = 0;
+  //cprintf("Process %d started at %d \n", p->pid, p->start_time);
 
   return p;
 }
@@ -249,6 +253,10 @@ exit(int status)
   end_op();
   curproc->cwd = 0;
 
+  int end_time = ticks;
+  cprintf(" Turnaround time for process %d is %d \n", curproc->pid, (end_time - curproc->start_time));
+  cprintf(" Wait time for process %d is %d \n", curproc->pid, curproc->total_wait);
+  //cprintf("Process %d exits at time %d \n", curproc->pid, end_time);
   acquire(&ptable.lock);
 
   // Parent might be sleeping in wait().
@@ -381,6 +389,7 @@ setpriority(int priority) {
         p->priority = priority;
         p->originalPriority = priority;
     }
+    //cprintf("Process %d has priority %d \n", p->pid, p->priority);
     return priority;
 }
 
@@ -431,7 +440,10 @@ scheduler(void)
             }
             continue;
         }
-
+        p->wait_end = ticks;
+        p->total_wait += (p->wait_end - p->wait_start);
+      //cprintf("Process %d wait_start %d wait_end %d \n", p->pid, p->wait_start, p->wait_end);
+      //cprintf("Process %d now has priority %d \n", p->pid, p->priority);
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -444,6 +456,7 @@ scheduler(void)
       if (p->priority < 31) {
           p->priority += 1;
       }
+      p->wait_start = ticks;
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
