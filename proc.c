@@ -312,6 +312,11 @@ wait(int* status)
         release(&ptable.lock);
         return pid;
       }
+
+//      if (p->priority > curproc->priority) {
+//          p->priority = curproc->priority;
+//          cprintf("process %d donated its priority %d to process %d \n", curproc->pid, curproc->priority, p->pid);
+//      }
     }
 
     // No point waiting if we don't have any children.
@@ -389,7 +394,7 @@ setpriority(int priority) {
         p->priority = priority;
         p->originalPriority = priority;
     }
-    //cprintf("Process %d has priority %d \n", p->pid, p->priority);
+    cprintf("Process %d priority set to %d \n", p->pid, p->priority);
     return priority;
 }
 
@@ -435,15 +440,16 @@ scheduler(void)
             continue;
 
         if (p->pid != highP->pid) {
-            if (p->pid > 0) {
+            if (p->priority > 0) {
                 p->priority -= 1;
             }
+            //cprintf("Process %d did not run and now has priority %d \n", p->pid, p->priority);
             continue;
         }
         p->wait_end = ticks;
         p->total_wait += (p->wait_end - p->wait_start);
       //cprintf("Process %d wait_start %d wait_end %d \n", p->pid, p->wait_start, p->wait_end);
-      //cprintf("Process %d now has priority %d \n", p->pid, p->priority);
+      //cprintf("Process %d  now has priority %d \n", p->pid, p->priority);
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -456,6 +462,7 @@ scheduler(void)
       if (p->priority < 31) {
           p->priority += 1;
       }
+      //cprintf("Process %d ran and now has priority %d \n", p->pid, p->priority);
       p->wait_start = ticks;
 
       // Process is done running for now.
